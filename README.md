@@ -1,3 +1,8 @@
+我将CLI book的仓库直接push到我的这个仓库里，到时的改动都在这里更新
+原本的CLI book的仓库的README见下页……
+
+---
+
 # Command-Line Rust: A Project-Based Primer for Writing Rust CLIs
 
 This is the code repository for the O'Reilly book [_Command-Line Rust_](https://learning.oreilly.com/library/view/command-line-rust/9781098109424/) (ISBN 9781098109417) by Ken Youens-Clark.
