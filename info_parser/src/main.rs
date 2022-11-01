@@ -1,3 +1,4 @@
+#![allow(unused_variables, dead_code)]
 /// 我们在这里学习如何解析一些简单的`.toml`配置文件
 /// 参考rustlings源码 && crate toml源码
 /// ```rust
@@ -31,10 +32,15 @@
 /// }
 use argh::FromArgs;
 use serde_derive::Deserialize;
+use std::fmt::format;
 use std::fs;
+use std::io::Write;
 use std::path::Path;
 use std::process;
 const  VERSION: &str = "0.0.1";
+
+
+
 #[derive(Deserialize)]
 struct Info {
     name: String,
@@ -42,17 +48,21 @@ struct Info {
 }
 
 
-#[derive(Deserialize)]
-struct CmplxInfo {
+#[derive(Deserialize, Debug)]
+pub struct CmplxInfo {
     name: String,
     age: Option<u8>,
     books: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]
-struct Partner {
+pub struct Partner {
     name: String,
-    uid: u16,
+    uid: u32,
+}
+#[derive(Deserialize)]
+pub struct PartnerList {
+    pub partners: Vec<Partner>
 }
 
 #[derive(Deserialize)]
@@ -72,6 +82,7 @@ struct Args {
     version: bool, 
 }
 
+#[warn(clippy::needless_doctest_main)]
 fn main() {
     // 先看 rustlings 的逻辑
     let args: Args = argh::from_env();
@@ -89,20 +100,44 @@ fn main() {
 
     //  检查某个prog的存在性
     if !prog_exists("rustc") {
-
+        println!("Failed to find `rustc`");        
+        std::process::exit(0x01);
     }
 
+    if !prog_exists("exa") {
+        println!("Failed to find `exa`");        
+        std::process::exit(0x01);
+    }
+    // fetch the raw content of the toml file
     let toml_raw = &fs::read_to_string("info.toml").unwrap();
-    match toml::from_str::<Partner>(toml_raw) {
-        Ok(parsed_info) => {
+    match toml::from_str::<PartnerList>(toml_raw) {
+        Ok(partners) => {
             //TODO: parse the commands inside `struct Partner`
-            println!("{:#?}", parsed_info);
+           partners.partners.iter().for_each(|p| {
+                let uid = format!("[{}]", p.uid);
+                let name = p.name.trim();
+                let namestr = format!("'{}'", name);
+                let stdout = std::io::stdout();
+                let mut handle = stdout.lock();
+                let outputs = format!("{namestr}:{uid}\n");
+                handle.write_all(outputs.as_bytes())
+                    .unwrap_or_else(|e| {
+                        match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => std::process::exit(0),
+                            _ => std::process::exit(1),
+                        }
+                    });
+           }) 
         },
         Err(e) => {
-            println!("{:?}: Failed to parse to toml raw content!, ", e);
+            let e = e.to_string();
+            println!("Failed to parse the toml raw content!, {}", e);
             process::exit(1);
+            
         }
     } 
+
+
 }
 
 
@@ -120,7 +155,8 @@ pub fn prog_exists(prog: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use std::process::{Command, Stdio};
-    #[test]
+    use super::*;
+
     fn try_command() {
         let mut_dir = Command::new("exa")
             .stdout(Stdio::null())
@@ -128,5 +164,72 @@ mod tests {
             .expect("Error");
         println!("{:?}", mut_dir);
     }
+
+    #[test]
+    fn try_parse_tomlvalues() {
+
+        #[derive(Deserialize, Debug)]
+        struct CmplxInfos {
+            cmplxinfos: Vec<CmplxInfo>
+        }
+        println!("--------{:<10}-------------", "TRY TOML PRIMARY TYPES");
+        let default = "info.toml".to_owned();
+        let toml_raw = &fs::read_to_string("testing.toml").unwrap_or(default);
+        match toml::from_str::<toml::Value>(toml_raw) {
+         Ok(toml_str) => {
+            println!("* === {} ===", toml_str);
+        },
+        Err(e) => {
+            let e = e.to_string();
+            println!("Failed to parse the raw string in the toml file, {}", e);
+            process::exit(1);
+        },
+    }
+
+        println!("-------TRY COMPLEX INFO------------");
+        match toml::from_str::<CmplxInfos>(toml_raw) {
+            Ok(cmplx_str) => {
+                println!("Works");
+            },
+            Err(e) => {
+                let e = e.to_string();
+                println!("Failed to parse the toml raw content!, {}", e);
+            },
+        }
+    }
+
+    fn try_parse_many() {
+
+        println!("--------{:<10}-------------", "TRY parse complicated toml");
+        let toml_raw = &fs::read_to_string("info.toml").unwrap();
+        match toml::from_str::<PartnerList>(toml_raw) {
+         Ok(partners) => {
+            //TODO: parse the commands inside `struct Partner`
+           partners.partners.iter().for_each(|p| {
+                let uid = format!("[{}]", p.uid);
+                let name = p.name.trim();
+                let namestr = format!("'{}'", name);
+                let stdout = std::io::stdout();
+                let mut handle = stdout.lock();
+                let outputs = format!("{namestr}:{uid}\n");
+                handle.write_all(outputs.as_bytes())
+                    .unwrap_or_else(|e| {
+                        match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => std::process::exit(0),
+                            _ => process::exit(1),
+                        }
+                    });
+           }) 
+        },
+         Err(e) => {
+            let e = e.to_string();
+            println!("Failed to parse the toml raw content!, {}", e);
+            process::exit(1);
+            
+        }
+    } 
+
+    }
+
 
 }
