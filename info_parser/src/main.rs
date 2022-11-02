@@ -30,15 +30,19 @@
 ///     assert_eq!(config.keys.github, "git@github.com:Egg12138");
 ///     assert_eq!(config.keys.travis.as_ref().unwrap(), "...");
 /// }
+/// 
+
 use argh::FromArgs;
-use serde_derive::Deserialize;
-use std::fmt::format;
+use serde_derive::{Deserialize, Serialize};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::process;
-const  VERSION: &str = "0.0.1";
-
+const VERSION: &str = "0.0.1";
+#[cfg(target_os = "linux")]
+const CONFIG_PATH: &str = "~/.local/.infoparser"; 
+#[cfg(target_os = "windows")]
+const CONFIG_PATH: &str = "C:\\bin\\.infoparser"; 
 
 
 #[derive(Deserialize)]
@@ -46,7 +50,7 @@ struct Info {
     name: String,
     age:  Option<u8>,
 }
-
+           
 
 #[derive(Deserialize, Debug)]
 pub struct CmplxInfo {
@@ -55,12 +59,12 @@ pub struct CmplxInfo {
     books: Vec<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 pub struct Partner {
     name: String,
     uid: u32,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct PartnerList {
     pub partners: Vec<Partner>
 }
@@ -127,7 +131,11 @@ fn main() {
                             _ => std::process::exit(1),
                         }
                     });
-           }) 
+           }); 
+           let toml_content = toml::to_string(&partners.partners).unwrap();
+           println!("{}", toml_content);
+           
+        
         },
         Err(e) => {
             let e = e.to_string();
@@ -156,6 +164,52 @@ pub fn prog_exists(prog: &str) -> bool {
 mod tests {
     use std::process::{Command, Stdio};
     use super::*;
+    use std::io::ErrorKind;
+    enum Server {
+        Github,
+        Gitee,
+        Gitlab,
+        Svn,
+    }
+
+    #[derive(Deserialize, Serialize, Debug)]
+    struct Repo {
+        ip: String,
+        port: Option<u16>,
+        config: Keys,
+    }
+    impl std::default::Default for  Repo {
+        fn default() -> Self {
+            Repo {
+                ip: "192.168.2.1".to_owned(),
+                port: Some(8080),
+                config: Keys { server: "git@github.com".to_owned(), token: Some("no-ssh-key".to_owned()) }
+            }
+        }
+    }
+    #[derive(Deserialize, Serialize, Debug)]
+    struct Keys {
+       // server: Server,
+        server: String,
+        token: Option<String>,
+    }
+
+    fn try_toml_export() {
+        #[warn(clippy::useless_format)] 
+        let raw_toml = &fs::read_to_string("testing.toml").unwrap();
+        let repo_config = toml::from_str::<Repo>(raw_toml).unwrap_or_default();
+        assert_eq!(repo_config.ip, "127.0.0.1".to_owned());
+        assert_eq!(repo_config.port, Some(65535));
+        assert_eq!(repo_config.config.server, "git@github.com".to_owned());
+        let export_toml = toml::to_string_pretty(&repo_config).unwrap();
+        // don't need to use try_exists instead of exists !
+        let configpath = Path::new(CONFIG_PATH);
+        if let Err(e) = fs::write(configpath, export_toml)  {
+            if e.kind() == ErrorKind::PermissionDenied {
+                println!("PermissionDenied: Fialed to write configuration into {}", CONFIG_PATH);
+            }
+        } 
+    }
 
     fn try_command() {
         let mut_dir = Command::new("exa")
@@ -165,7 +219,6 @@ mod tests {
         println!("{:?}", mut_dir);
     }
 
-    #[test]
     fn try_parse_tomlvalues() {
 
         #[derive(Deserialize, Debug)]
@@ -191,6 +244,7 @@ mod tests {
             Ok(cmplx_str) => {
                 println!("Works");
             },
+
             Err(e) => {
                 let e = e.to_string();
                 println!("Failed to parse the toml raw content!, {}", e);
@@ -198,6 +252,7 @@ mod tests {
         }
     }
 
+    
     fn try_parse_many() {
 
         println!("--------{:<10}-------------", "TRY parse complicated toml");
@@ -230,6 +285,5 @@ mod tests {
     } 
 
     }
-
 
 }

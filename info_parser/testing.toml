@@ -1,17 +1,6 @@
-# FIXME 正则这个格式
-# 由于 toml 是无歧义映射为 Hash Table.所以:
-# 一个pattern key只能存在一个，所以如果我们试图存储多个 patterns. 我们应该
 
-
-
-#toml_float = 3.1415926
-#toml_integer = 23
-
-[[cmplinfos]]
-name = "egg-complex"
-age = 22
-books = ["Theory of General Relativity", "Glibc Manual"]
-#
-#toml_str = 'C:\Users\Shaw\bin'
-#toml_array = [ "电子烟", "传统香烟", ]
-
+port = 65535
+ip = "127.0.0.1"
+[config] # type Keys:
+server = "git@github.com"
+token = "ssh-256-key-egg12138"
