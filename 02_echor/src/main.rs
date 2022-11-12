@@ -1,26 +1,33 @@
-use clap::{App, Arg};
+#![feature(format_args_nl)]
+
+
+use clap::{Parser, Subcommand, ArgAction};
+use std::path::PathBuf;
+use std::io::{stdout, Write};
+#[derive(Parser, Debug)]
+#[command(author, version)]
+#[command(about = "A echo implemented by rust-lang",  long_about = None)]
+#[command(author = "aydenegg")]
+struct Echor {
+    #[arg(action = ArgAction::Append)]
+    src: Option<Vec<String>>,
+    #[arg(short, long, value_name = "FILE")]    
+    from: Option<PathBuf>,
+    #[arg(short, long, action = ArgAction::Count)]
+    cpus: u8,
+}
 
 fn main() {
-    let matches = App::new("echor")
-        .version("0.1.0")
-        .author("Ken Youens-Clark <kyclark@gmail.com>")
-        .about("Rust echo")
-        .arg(
-            Arg::with_name("text")
-                .value_name("TEXT")
-                .help("Input text")
-                .required(true)
-                .min_values(1),
-        )
-        .arg(
-            Arg::with_name("omit_newline")
-                .short("n")
-                .help("Do not print newline")
-                .takes_value(false),
-        )
-        .get_matches();
 
-    let text = matches.values_of_lossy("text").unwrap();
-    let omit_newline = matches.is_present("omit_newline");
-    print!("{}{}", text.join(" "), if omit_newline { "" } else { "\n" });
+    let cli = Echor::parse();
+    println!("{:#?}", cli);
+    let stdin_vec = cli.src.unwrap_or(Vec::from(["".to_owned()]));
+    let stdin_str = stdin_vec.join(" ");
+    let stdout = stdout();
+    let mut handle = stdout.lock();
+    handle.write_fmt(format_args_nl!("{}", stdin_str));
+    /*if let Some(file) = cli.from.as_deref() {
+        println!("From file {}", file.display());
+    } 
+    */
 }

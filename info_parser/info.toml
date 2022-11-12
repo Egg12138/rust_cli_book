@@ -2,15 +2,15 @@
 # 由于 toml 是无歧义映射为 Hash Table.所以:
 # 一个pattern key只能存在一个，所以如果我们试图存储多个 patterns. 我们应该
 [[partners]]
-name = "demo_player"
+let = "demo_player"
 uid = 203
 
 [[partners]]
-name = "Lin Siqi"
+let = "Lin Siqi"
 uid = 123
 
 [[partners]]
-name = "Egg Shaw"
+let = "Egg Shaw"
 uid = 20344135
 
 

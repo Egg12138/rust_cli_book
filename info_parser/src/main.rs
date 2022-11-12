@@ -38,29 +38,35 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::process;
+
 const VERSION: &str = "0.0.1";
+
 #[cfg(target_os = "linux")]
-const CONFIG_PATH: &str = "~/.local/.infoparser"; 
+const CONFIG_PATH: &str = "~/.local/.Accountparser"; 
 #[cfg(target_os = "windows")]
-const CONFIG_PATH: &str = "C:\\bin\\.infoparser"; 
+const CONFIG_PATH: &str = "C:\\bin\\.Accountparser"; 
 
 
 #[derive(Deserialize)]
-struct Info {
+struct Account {
     name: String,
     age:  Option<u8>,
 }
            
 
 #[derive(Deserialize, Debug)]
-pub struct CmplxInfo {
+#[serde(rename(serialize = "let"))]
+pub struct CmplxAccount {
+    #[serde(rename = "nm")]
     name: String,
     age: Option<u8>,
     books: Vec<String>,
 }
 
 #[derive(Deserialize, Debug, Serialize)]
+#[serde(rename = "member")]
 pub struct Partner {
+    #[serde(rename = "let")]
     name: String,
     uid: u32,
 }
@@ -94,9 +100,9 @@ fn main() {
         println!("-v{}", VERSION);
     }
 
-    // 检查 info.toml 存在性
-    if !Path::new("info.toml").exists() {
-        println!("Error: Cannot find the info file`info.toml` in the current directory. {} must be with  it.", 
+    // 检查 Account.toml 存在性
+    if !Path::new("Account.toml").exists() {
+        println!("Error: Cannot find the Account file`Account.toml` in the current directory. {} must be with  it.", 
             std::env::current_exe().unwrap().to_str().unwrap()         
     );
         process::exit(1);
@@ -113,7 +119,7 @@ fn main() {
         std::process::exit(0x01);
     }
     // fetch the raw content of the toml file
-    let toml_raw = &fs::read_to_string("info.toml").unwrap();
+    let toml_raw = &fs::read_to_string("Account.toml").unwrap();
     match toml::from_str::<PartnerList>(toml_raw) {
         Ok(partners) => {
             //TODO: parse the commands inside `struct Partner`
@@ -125,21 +131,21 @@ fn main() {
                 let mut handle = stdout.lock();
                 let outputs = format!("{namestr}:{uid}\n");
                 handle.write_all(outputs.as_bytes())
-                    .unwrap_or_else(|e| {
-                        match e.kind() {
+                    .unwrap_or_else(|err| {
+                        match err.kind() {
                             std::io::ErrorKind::BrokenPipe => std::process::exit(0),
                             _ => std::process::exit(1),
                         }
                     });
            }); 
-           let toml_content = toml::to_string(&partners.partners).unwrap();
+           let toml_content = toml::to_string_pretty(&partners.partners).unwrap();
            println!("{}", toml_content);
            
         
         },
-        Err(e) => {
-            let e = e.to_string();
-            println!("Failed to parse the toml raw content!, {}", e);
+        Err(err) => {
+            let err = err.to_string();
+            println!("Failed to parse the toml raw content!, {}", err);
             process::exit(1);
             
         }
@@ -147,7 +153,6 @@ fn main() {
 
 
 }
-
 
 pub fn prog_exists(prog: &str) -> bool {
 
@@ -163,6 +168,8 @@ pub fn prog_exists(prog: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use std::process::{Command, Stdio};
+    use serde::Deserialize;
+
     use super::*;
     use std::io::ErrorKind;
     enum Server {
@@ -204,8 +211,8 @@ mod tests {
         let export_toml = toml::to_string_pretty(&repo_config).unwrap();
         // don't need to use try_exists instead of exists !
         let configpath = Path::new(CONFIG_PATH);
-        if let Err(e) = fs::write(configpath, export_toml)  {
-            if e.kind() == ErrorKind::PermissionDenied {
+        if let Err(err) = fs::write(configpath, export_toml)  {
+            if err.kind() == ErrorKind::PermissionDenied {
                 println!("PermissionDenied: Fialed to write configuration into {}", CONFIG_PATH);
             }
         } 
@@ -222,32 +229,32 @@ mod tests {
     fn try_parse_tomlvalues() {
 
         #[derive(Deserialize, Debug)]
-        struct CmplxInfos {
-            cmplxinfos: Vec<CmplxInfo>
+        struct CmplxAccounts {
+            cmplxaccount: Vec<CmplxAccount>
         }
         println!("--------{:<10}-------------", "TRY TOML PRIMARY TYPES");
-        let default = "info.toml".to_owned();
+        let default = "Account.toml".to_owned();
         let toml_raw = &fs::read_to_string("testing.toml").unwrap_or(default);
         match toml::from_str::<toml::Value>(toml_raw) {
          Ok(toml_str) => {
             println!("* === {} ===", toml_str);
         },
-        Err(e) => {
-            let e = e.to_string();
-            println!("Failed to parse the raw string in the toml file, {}", e);
+        Err(err) => {
+            let err = err.to_string();
+            println!("Failed to parse the raw string in the toml file, {}", err);
             process::exit(1);
         },
     }
 
-        println!("-------TRY COMPLEX INFO------------");
-        match toml::from_str::<CmplxInfos>(toml_raw) {
+        println!("-------TRY COMPLEX Account------------");
+        match toml::from_str::<CmplxAccounts>(toml_raw) {
             Ok(cmplx_str) => {
                 println!("Works");
             },
 
-            Err(e) => {
-                let e = e.to_string();
-                println!("Failed to parse the toml raw content!, {}", e);
+            Err(err) => {
+                let err = err.to_string();
+                println!("Failed to parse the toml raw content!, {}", err);
             },
         }
     }
@@ -256,7 +263,7 @@ mod tests {
     fn try_parse_many() {
 
         println!("--------{:<10}-------------", "TRY parse complicated toml");
-        let toml_raw = &fs::read_to_string("info.toml").unwrap();
+        let toml_raw = &fs::read_to_string("Account.toml").unwrap();
         match toml::from_str::<PartnerList>(toml_raw) {
          Ok(partners) => {
             //TODO: parse the commands inside `struct Partner`
@@ -268,22 +275,46 @@ mod tests {
                 let mut handle = stdout.lock();
                 let outputs = format!("{namestr}:{uid}\n");
                 handle.write_all(outputs.as_bytes())
-                    .unwrap_or_else(|e| {
-                        match e.kind() {
+                    .unwrap_or_else(|err| {
+                        match err.kind() {
                             std::io::ErrorKind::BrokenPipe => std::process::exit(0),
                             _ => process::exit(1),
                         }
                     });
            }) 
         },
-         Err(e) => {
-            let e = e.to_string();
-            println!("Failed to parse the toml raw content!, {}", e);
+         Err(err) => {
+            let err = err.to_string();
+            println!("Failed to parse the toml raw content!, {}", err);
             process::exit(1);
             
         }
     } 
 
+    }
+
+    #[test]
+    fn serde_enum_representations() {
+        use serde_json;
+        #[derive(Serialize, Deserialize, Debug, PartialEq)]
+        //#[serde(tag = "MessageType", content = "item")]
+        enum Message {
+            #[serde(rename = "RequestInfo")]
+            Request { id: String, method: String},
+            #[serde(rename = "ResponseInfo")]
+            Response { id: String, result: serde_json::Value },
+        }
+       let msg = Message::Request { id: "Egg12138".to_string(), method: "CNN".to_string()};
+       let serialized_msg = serde_json::to_string_pretty(&msg).unwrap(); 
+       println!("serialized => {}", serialized_msg);
+       let de_msg = serde_json::from_str::<Message>(&serialized_msg).unwrap();
+       println!("deserialized => {:#?}", de_msg);
+       assert_eq!(de_msg, msg);
+       if let Err(err) = fs::write(Path::new("./testjson.json"), &serialized_msg) {
+        	let err = err.to_string();
+            println!("{}", err);
+       }
+       
     }
 
 }

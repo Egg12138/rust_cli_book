@@ -21,3 +21,18 @@ Discover how to:
 * Write programs that fail gracefully
 * Parse raw and delimited text
 * Use and control randomness
+
+
+# NOTES for packages
+
+## 01: hello:
+
+`assert_cmd.rs`, easy for cli testing.有一些比较方便的：
+`assert_cmd::Command::cargo_bin(nameof_bin)`, easy for specific the binary to be tested
+
+`man true` and `man false` will help. 
+
+## 02: 
+
+
+
