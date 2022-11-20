@@ -225,7 +225,6 @@ mod tests {
         struct CmplxInfos {
             cmplxinfos: Vec<CmplxInfo>
         }
-        println!("--------{:<10}-------------", "TRY TOML PRIMARY TYPES");
         let default = "info.toml".to_owned();
         let toml_raw = &fs::read_to_string("testing.toml").unwrap_or(default);
         match toml::from_str::<toml::Value>(toml_raw) {
@@ -239,7 +238,6 @@ mod tests {
         },
     }
 
-        println!("-------TRY COMPLEX INFO------------");
         match toml::from_str::<CmplxInfos>(toml_raw) {
             Ok(cmplx_str) => {
                 println!("Works");
@@ -286,4 +284,10 @@ mod tests {
 
     }
 
+    #[test]
+    fn open_stdin() {
+        
+
+
+    }
 }
