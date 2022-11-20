@@ -40,11 +40,11 @@ fn hello2() -> TestResult {
 // --------------------------------------------------
 #[test]
 fn hello1_no_newline() -> TestResult {
-    run(&["Hello  there", "-n"], "tests/expected/hello1.n.txt")
+    run(&["Hello  there", "-c"], "tests/expected/hello1.n.txt")
 }
 
 // --------------------------------------------------
 #[test]
 fn hello2_no_newline() -> TestResult {
-    run(&["-n", "Hello", "there"], "tests/expected/hello2.n.txt")
+    run(&["-c", "Hello", "there"], "tests/expected/hello2.n.txt")
 }
