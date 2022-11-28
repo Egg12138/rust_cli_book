@@ -1,7 +1,7 @@
-use clap::{App, Arg};
+use clap::{Arg, Parser, ArgAction};
 use std::error::Error;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+use std::fs::{File, read};
+use std::io::{self, BufRead, BufReader, Read, Write};
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
@@ -12,7 +12,46 @@ pub struct Config {
     number_nonblank_lines: bool,
 }
 
-// --------------------------------------------------
+impl Default for  Config {
+    fn default() -> Self {
+        
+        #[cfg(target_os = "linux")]
+        let empty_file = "/usr/share/man/man1/cat.1.gz"; // cat  man 
+        #[cfg(target_os = "windows")]
+        let empty_file = "C:\\User\\cat_empty.txt";
+        Config {
+            files: [empty_file.to_owned()].to_vec(),
+            number_lines: false,
+            number_nonblank_lines: false,
+        }
+    }
+
+}
+
+
+#[derive(Debug,Parser)]
+#[command(version)]
+#[command(about = "A clone of cat by Rust", long_about = "This catr contains arguments only -b and -n.")]
+#[command(author = "Aydenegg")]
+pub struct Catr {
+    /// files to be catr
+    files: Vec<String>, // required
+    /// show the line number
+    #[arg(short, long, value_name = "LINENUM")]
+    nonempty_linenums: bool,
+    /// show only nonempty line
+    #[arg(short, long, value_name = "LINENUM_NONEMPTY")]
+    empty_linenums: bool,
+}
+
+pub fn get_args() -> MyResult<Catr> {
+
+    let config = Catr::parse();
+    Ok(config)
+
+}
+
+/* --------------------------------------------------
 pub fn get_args() -> MyResult<Config> {
     let matches = App::new("catr")
         .version("0.1.0")
@@ -49,7 +88,45 @@ pub fn get_args() -> MyResult<Config> {
     })
 }
 
-// --------------------------------------------------
+*/
+#[inline]
+pub fn run(config: Catr) -> MyResult<()> {
+
+    let files_vec = config.files;
+    let mut files_iter = files_vec.iter().filter(|s| !s.is_empty()); 
+    //while let Some(&fpath) =  files_iter.next() {
+    for fpath in files_iter {
+        match open(fpath) {
+            Ok(f) => {
+                let mut nonempty_line_num = 0u32;
+                for (file_line_num, line_result) in f.lines().enumerate() {
+                    let line = line_result?;
+                    // nonempty_linenums holds the highest priority.
+                    if config.nonempty_linenums {
+                        println!("{:6}\t{}", file_line_num + 1, line);
+                    } else if config.empty_linenums {
+                        if !line.is_empty() {
+                            nonempty_line_num += 1;
+                            println!("{:6}\t{}", nonempty_line_num, line);
+                        } else {
+                            println!();
+                        }
+                    } else {
+                        println!("{line}");
+                    } 
+                }
+            },
+            Err(err) => {
+                let es = format!("{}: .* [(]os error 2[)]", fpath);
+                println!("{}",es);
+            } 
+        }
+    }
+
+
+    Ok(())
+}
+/*  --------------------------------------------------
 pub fn run(config: Config) -> MyResult<()> {
     for filename in config.files {
         match open(&filename) {
@@ -76,6 +153,8 @@ pub fn run(config: Config) -> MyResult<()> {
     }
     Ok(())
 }
+*/
+
 
 // --------------------------------------------------
 fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {

@@ -33,6 +33,9 @@ Discover how to:
 `man true` and `man false` will help. 
 
 ## 02: 
+`clap`需要启动`features = ["derive]`派生宏才可以有`#[derive(Parser)]`
+
+
 
 
 

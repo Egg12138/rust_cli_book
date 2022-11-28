@@ -19,7 +19,7 @@ fn usage() -> TestResult {
         Command::cargo_bin(PRG)?
             .arg(flag)
             .assert()
-            .stdout(predicate::str::contains("USAGE"));
+            .stdout(predicate::str::contains("Usage"));
     }
     Ok(())
 }
@@ -81,13 +81,11 @@ fn run_stdin(
 }
 
 // --------------------------------------------------
-#[test]
 fn bustle_stdin() -> TestResult {
     run_stdin(BUSTLE, &["-"], "tests/expected/the-bustle.txt.stdin.out")
 }
 
 // --------------------------------------------------
-#[test]
 fn bustle_stdin_n() -> TestResult {
     run_stdin(
         BUSTLE,
@@ -97,23 +95,20 @@ fn bustle_stdin_n() -> TestResult {
 }
 
 // --------------------------------------------------
-#[test]
 fn bustle_stdin_b() -> TestResult {
     run_stdin(
         BUSTLE,
-        &["-b", "-"],
+        &["-e", "-"],
         "tests/expected/the-bustle.txt.b.stdin.out",
     )
 }
 
 // --------------------------------------------------
-#[test]
 fn empty() -> TestResult {
     run(&[EMPTY], "tests/expected/empty.txt.out")
 }
 
 // --------------------------------------------------
-#[test]
 fn empty_n() -> TestResult {
     run(&["-n", EMPTY], "tests/expected/empty.txt.n.out")
 }
@@ -121,7 +116,7 @@ fn empty_n() -> TestResult {
 // --------------------------------------------------
 #[test]
 fn empty_b() -> TestResult {
-    run(&["-b", EMPTY], "tests/expected/empty.txt.b.out")
+    run(&["-e", EMPTY], "tests/expected/empty.txt.b.out")
 }
 
 // --------------------------------------------------
@@ -131,7 +126,6 @@ fn fox() -> TestResult {
 }
 
 // --------------------------------------------------
-#[test]
 fn fox_n() -> TestResult {
     run(&["-n", FOX], "tests/expected/fox.txt.n.out")
 }
@@ -139,11 +133,10 @@ fn fox_n() -> TestResult {
 // --------------------------------------------------
 #[test]
 fn fox_b() -> TestResult {
-    run(&["-b", FOX], "tests/expected/fox.txt.b.out")
+    run(&["-e", FOX], "tests/expected/fox.txt.b.out")
 }
 
 // --------------------------------------------------
-#[test]
 fn spiders() -> TestResult {
     run(&[SPIDERS], "tests/expected/spiders.txt.out")
 }
@@ -151,44 +144,39 @@ fn spiders() -> TestResult {
 // --------------------------------------------------
 #[test]
 fn spiders_n() -> TestResult {
-    run(&["--number", SPIDERS], "tests/expected/spiders.txt.n.out")
+    run(&["--empty-linenums", SPIDERS], "tests/expected/spiders.txt.n.out")
 }
 
 // --------------------------------------------------
 #[test]
 fn spiders_b() -> TestResult {
     run(
-        &["--number-nonblank", SPIDERS],
+        &["--nonempty-linenums", SPIDERS],
         "tests/expected/spiders.txt.b.out",
     )
 }
 
 // --------------------------------------------------
-#[test]
 fn bustle() -> TestResult {
     run(&[BUSTLE], "tests/expected/the-bustle.txt.out")
 }
 
 // --------------------------------------------------
-#[test]
 fn bustle_n() -> TestResult {
     run(&["-n", BUSTLE], "tests/expected/the-bustle.txt.n.out")
 }
 
 // --------------------------------------------------
-#[test]
 fn bustle_b() -> TestResult {
-    run(&["-b", BUSTLE], "tests/expected/the-bustle.txt.b.out")
+    run(&["-e", BUSTLE], "tests/expected/the-bustle.txt.b.out")
 }
 
 // --------------------------------------------------
-#[test]
 fn all() -> TestResult {
     run(&[FOX, SPIDERS, BUSTLE], "tests/expected/all.out")
 }
 
 // --------------------------------------------------
-#[test]
 fn all_n() -> TestResult {
     run(&[FOX, SPIDERS, BUSTLE, "-n"], "tests/expected/all.n.out")
 }
@@ -196,5 +184,5 @@ fn all_n() -> TestResult {
 // --------------------------------------------------
 #[test]
 fn all_b() -> TestResult {
-    run(&[FOX, SPIDERS, BUSTLE, "-b"], "tests/expected/all.b.out")
+    run(&[FOX, SPIDERS, BUSTLE, "-e"], "tests/expected/all.b.out")
 }

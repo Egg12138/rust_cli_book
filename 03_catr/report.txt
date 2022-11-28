@@ -1,0 +1,100 @@
+*     1use catr::{ Config, Catr };
+
+*     2fn main() {
+*     3    //if let Err(e) = catr::run(Config::default()) {
+*     4    if let Err(e) = catr::get_args().and_then(catr::run) {
+*     5        eprintln!("{}", e);
+
+*     6        std::process::exit(1);
+*     7    }
+*     8}
+1     use catr::{ Config, Catr };
+
+2     fn main() {
+3         //if let Err(e) = catr::run(Config::default()) {
+4         if let Err(e) = catr::get_args().and_then(catr::run) {
+5             eprintln!("{}", e);
+
+6             std::process::exit(1);
+7         }
+8     }
+     1use catr::{ Config, Catr };
+     2      
+     3fn main() {
+     4    //if let Err(e) = catr::run(Config::default()) {
+     5    if let Err(e) = catr::get_args().and_then(catr::run) {
+     6        eprintln!("{}", e);
+     7      
+     8        std::process::exit(1);
+     9    } 
+    10}     
+1use catr::{ Config, Catr };
+2      
+3fn main() {
+4    //if let Err(e) = catr::run(Config::default()) {
+5    if let Err(e) = catr::get_args().and_then(catr::run) {
+6        eprintln!("{}", e);
+7      
+8        std::process::exit(1);
+9    } 
+10}     
+   1use catr::{ Config, Catr };
+   2      
+   3fn main() {
+   4    //if let Err(e) = catr::run(Config::default()) {
+   5    if let Err(e) = catr::get_args().and_then(catr::run) {
+   6        eprintln!("{}", e);
+   7      
+   8        std::process::exit(1);
+   9    } 
+  10}     
+   1use catr::{ Config, Catr };
+   2      
+   3fn main() {
+   4    //if let Err(e) = catr::run(Config::default()) {
+   5    if let Err(e) = catr::get_args().and_then(catr::run) {
+   6        eprintln!("{}", e);
+   7      
+   8        std::process::exit(1);
+   9     }
+  10     }
+1   use catr::{ Config, Catr };
+2   
+3   fn main() {
+4       //if let Err(e) = catr::run(Config::default()) {
+5       if let Err(e) = catr::get_args().and_then(catr::run) {
+6           eprintln!("{}", e);
+7   
+8           std::process::exit(1);
+9       }
+10  }
+1222use catr::{ Config, Catr };
+2222
+3222fn main() {
+4222    //if let Err(e) = catr::run(Config::default()) {
+5222    if let Err(e) = catr::get_args().and_then(catr::run) {
+6222        eprintln!("{}", e);
+7222
+8222        std::process::exit(1);
+9222    }
+1022}
+1222use catr::{ Config, Catr };
+2222
+3222fn main() {
+4222    //if let Err(e) = catr::run(Config::default()) {
+5222    if let Err(e) = catr::get_args().and_then(catr::run) {
+6222        eprintln!("{}", e);
+7222
+8222        std::process::exit(1);
+9222    }
+1022}
+1   use catr::{ Config, Catr };
+2   
+3   fn main() {
+4       //if let Err(e) = catr::run(Config::default()) {
+5       if let Err(e) = catr::get_args().and_then(catr::run) {
+6           eprintln!("{}", e);
+7   
+8           std::process::exit(1);
+9       }
+10  }
