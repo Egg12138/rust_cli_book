@@ -40,7 +40,6 @@ use std::path::Path;
 use std::process;
 
 const VERSION: &str = "0.0.1";
-
 #[cfg(target_os = "linux")]
 const CONFIG_PATH: &str = "~/.local/.Accountparser"; 
 #[cfg(target_os = "windows")]
@@ -153,7 +152,6 @@ fn main() {
 
 
 }
-
 pub fn prog_exists(prog: &str) -> bool {
 
     process::Command::new(prog)
@@ -169,7 +167,6 @@ pub fn prog_exists(prog: &str) -> bool {
 mod tests {
     use std::process::{Command, Stdio};
     use serde::Deserialize;
-
     use super::*;
     use std::io::ErrorKind;
     enum Server {
@@ -232,6 +229,7 @@ mod tests {
         struct CmplxAccounts {
             cmplxaccount: Vec<CmplxAccount>
         }
+        let default = "info.toml".to_owned();
         println!("--------{:<10}-------------", "TRY TOML PRIMARY TYPES");
         let default = "Account.toml".to_owned();
         let toml_raw = &fs::read_to_string("testing.toml").unwrap_or(default);
@@ -246,6 +244,7 @@ mod tests {
         },
     }
 
+        match toml::from_str::<CmplxInfos>(toml_raw) {
         println!("-------TRY COMPLEX Account------------");
         match toml::from_str::<CmplxAccounts>(toml_raw) {
             Ok(cmplx_str) => {
@@ -294,6 +293,11 @@ mod tests {
     }
 
     #[test]
+    fn open_stdin() {
+        
+
+
+    }
     fn serde_enum_representations() {
         use serde_json;
         #[derive(Serialize, Deserialize, Debug, PartialEq)]
