@@ -1,6 +1,5 @@
 #![feature(format_args_nl)]
 
-
 use clap::{Parser, Subcommand, ArgAction};
 use std::path::PathBuf;
 use std::io::{stdout, Write};
