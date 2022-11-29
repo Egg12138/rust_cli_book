@@ -117,8 +117,8 @@ pub fn run(config: Catr) -> MyResult<()> {
                 }
             },
             Err(err) => {
-                let es = format!("{}: .* [(]os error 2[)]", fpath);
-                println!("{}",es);
+                let es = format!("{} >> error.", fpath);
+                eprintln!("{}",es);
             } 
         }
     }
