@@ -1,17 +1,37 @@
-use clap::{App, Arg};
+use clap::{Arg, Parser, ArgAction};
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
-#[derive(Debug)]
-pub struct Config {
+#[derive(Debug, Parser)]
+#[command(version)]
+#[command(about = "A clone of head by Rust", long_about = "No more description...")]
+#[command(author="Aydenegg")]
+pub struct Headr {
+    /// files passed to headr
     files: Vec<String>,
+    #[arg(short, long, value_name = "LENS_NUM")]
     lines: usize,
+    /// How many first bytes to be read into the school
+    #[arg(short = "-c", long, value_name = "FIRST_BYTES")]
     bytes: Option<usize>,
 }
 
+impl Default for Headr {
+    fn default() -> Self{
+        #[cfg(target_os = "linux")]
+        let fs = "/usr/share/man/man1/head.1.gz".to_owned();
+        #[cfg(target_os = "linux")]
+        let fs = "C:\\User\\headr_empty.txt".to_owned();
+        Config {
+            files: [fs].to_vec(),
+            lines: -1,
+            bytes: -1,
+        }
+    }
+}
 // --------------------------------------------------
 pub fn get_args() -> MyResult<Config> {
     let matches = App::new("headr")
