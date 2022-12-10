@@ -1,4 +1,4 @@
-use clap::{Arg, Parser, ArgAction};
+use clap::Parser;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
@@ -12,10 +12,10 @@ type MyResult<T> = Result<T, Box<dyn Error>>;
 pub struct Headr {
     /// files passed to headr
     files: Vec<String>,
-    #[arg(short, long, value_name = "LENS_NUM")]
-    lines: usize,
+    #[arg(short = 'n', long, default_value = "10",  value_name = "LENS_NUM")]
+    lines: isize,
     /// How many first bytes to be read into the school
-    #[arg(short = "-c", long, value_name = "FIRST_BYTES")]
+    #[arg(short = 'c', long, value_name = "FIRST_BYTES")]
     bytes: Option<usize>,
 }
 
@@ -25,112 +25,60 @@ impl Default for Headr {
         let fs = "/usr/share/man/man1/head.1.gz".to_owned();
         #[cfg(target_os = "linux")]
         let fs = "C:\\User\\headr_empty.txt".to_owned();
-        Config {
+        Headr {
             files: [fs].to_vec(),
             lines: -1,
-            bytes: -1,
+            bytes: Some(1),
         }
     }
 }
 // --------------------------------------------------
-pub fn get_args() -> MyResult<Config> {
-    let matches = App::new("headr")
-        .version("0.1.0")
-        .author("Ken Youens-Clark <kyclark@gmail.com>")
-        .about("Rust head")
-        .arg(
-            Arg::with_name("lines")
-                .short("n")
-                .long("lines")
-                .value_name("LINES")
-                .help("Number of lines")
-                .default_value("10"),
-        )
-        .arg(
-            Arg::with_name("bytes")
-                .short("c")
-                .long("bytes")
-                .value_name("BYTES")
-                .takes_value(true)
-                .conflicts_with("lines")
-                .help("Number of bytes"),
-        )
-        .arg(
-            Arg::with_name("files")
-                .value_name("FILE")
-                .help("Input file(s)")
-                .multiple(true)
-                .default_value("-"),
-        )
-        .get_matches();
-
-    let lines = matches
-        .value_of("lines")
-        .map(parse_positive_int)
-        .transpose()
-        .map_err(|e| format!("illegal line count -- {}", e))?;
-
-    let bytes = matches
-        .value_of("bytes")
-        .map(parse_positive_int)
-        .transpose()
-        .map_err(|e| format!("illegal byte count -- {}", e))?;
-
-    Ok(Config {
-        files: matches.values_of_lossy("files").unwrap(),
-        lines: lines.unwrap(),
-        bytes,
-    })
+pub fn get_args() -> MyResult<Headr> {
+    let headrconfig = Headr::parse(); 
+    Ok(headrconfig)
 }
 
-// --------------------------------------------------
-pub fn run(config: Config) -> MyResult<()> {
-    let num_files = config.files.len();
+pub fn run(headr: Headr) -> MyResult<()> {
 
-    for (file_num, filename) in config.files.iter().enumerate() {
-        match open(filename) {
-            Err(err) => eprintln!("{}: {}", filename, err),
-            Ok(mut file) => {
-                if num_files > 1 {
-                    println!(
-                        "{}==> {} <==",
-                        if file_num > 0 { "\n" } else { "" },
-                        &filename
-                    );
-                }
+    let num_files = headr.files.len();
 
-                if let Some(num_bytes) = config.bytes {
-                    let mut handle = file.take(num_bytes as u64);
-                    let mut buffer = vec![0; num_bytes];
-                    let bytes_read = handle.read(&mut buffer)?;
-                    print!(
-                        "{}",
-                        String::from_utf8_lossy(&buffer[..bytes_read])
-                    );
+    for (fileindex, fname) in headr.files.iter().enumerate() {
+        match open(fname) {
+            Err(err) => {
+                eprintln!("open{}: {}", fname, err);
+            }, 
+            Ok(mut f) => {
+                println!("{}{}", if headr.files.len() > 0 { "\n"} else { "" } , &fname);
+                if let Some(num_bytes) = headr.bytes {
+                    let mut handle = f.take(num_bytes as u64); 
+                    let mut buffer = [0; 10];
+                    let read_bytes_num = handle.read(&mut buffer)?;
+                    print!("{}", String::from_utf8_lossy(&buffer[..read_bytes_num]));
                 } else {
-                    let mut line = String::new();
-                    for _ in 0..config.lines {
-                        let bytes = file.read_line(&mut line)?;
-                        if bytes == 0 {
-                            break;
-                        }
-                        print!("{}", line);
-                        line.clear();
+                    let mut line_string = String::new();
+                    for _ in 0..headr.lines {
+                        let read_bytes_num = f.read_line(&mut line_string)?;
+                        print!("{}", line_string);
+                        line_string.clear();
                     }
                 }
             }
         }
     }
+
     Ok(())
+
 }
 
-// --------------------------------------------------
-fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
-    match filename {
-        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
-        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
-    }
+
+
+fn open(fname: &str) -> MyResult<Box<dyn BufRead>> {
+   match fname {
+    "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+    _ => Ok(Box::new(BufReader::new(File::open(fname)?))),
+   } 
 }
+
 
 // --------------------------------------------------
 fn parse_positive_int(val: &str) -> MyResult<usize> {
